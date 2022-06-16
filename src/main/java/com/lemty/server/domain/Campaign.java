@@ -29,7 +29,9 @@ public class Campaign{
     private Integer dailyLimit;
     private String completed;
     private String status;
-    private Map[] steps;
+
+    @OneToMany
+    private List<Step> steps = new ArrayList<>();
     private Integer sent = 0;
 
     @Column(updatable = false)
@@ -141,11 +143,11 @@ public class Campaign{
         this.prospectLists = prospectLists;
     }
 
-    public Map[] getSteps() {
+    public List<Step> getSteps() {
         return steps;
     }
 
-    public void setSteps(Map[] steps) {
+    public void setSteps(List<Step> steps) {
         this.steps = steps;
     }
 
