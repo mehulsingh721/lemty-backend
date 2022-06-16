@@ -6,14 +6,18 @@ import com.lemty.server.domain.AppUser;
 import com.lemty.server.domain.Campaign;
 import com.lemty.server.domain.Emails;
 import com.lemty.server.domain.Engagement;
+import com.lemty.server.domain.Mail;
 import com.lemty.server.domain.Prospect;
 import com.lemty.server.domain.ProspectMetadata;
+import com.lemty.server.domain.Step;
 import com.lemty.server.helpers.PlaceholderHelper;
 import com.lemty.server.repo.CampaignRepository;
 import com.lemty.server.repo.EmailsRepository;
 import com.lemty.server.repo.EngagementRepository;
+import com.lemty.server.repo.MailRepo;
 import com.lemty.server.repo.ProspectMetadataRepository;
 import com.lemty.server.repo.ProspectRepository;
+import com.lemty.server.repo.StepRepository;
 import com.lemty.server.repo.UserRepo;
 import org.quartz.JobKey;
 import org.quartz.Scheduler;
@@ -42,10 +46,13 @@ public class CampaignService {
     private final EngagementRepository engagementRepository;
     private final EmailsRepository emailsRepository;
     private final PlaceholderHelper placeholderHelper;
+    @Autowired
+    private MailRepo mailRepo;
+    @Autowired
+    private StepRepository stepRepository;
 
     @Autowired
     public CampaignService(Scheduler scheduler, CampaignRepository campaignRepository, ProspectService prospectService, UserRepo userRepo, StepService stepService, ProspectMetadataRepository prospectMetadataRepository, ProspectRepository prospectRepository, EngagementRepository engagementRepository, EmailsRepository emailsRepository, PlaceholderHelper placeholderHelper){
-
         this.scheduler = scheduler;
         this.campaignRepository = campaignRepository;
         this.prospectService = prospectService;
@@ -86,8 +93,13 @@ public class CampaignService {
         //List<Map<String, Object>> steps = newCampaign.getSteps();
         newCampaign.setStatus("Not Started");
         newCampaign.setProspectCount(0);
+        List<Step> steps = newCampaign.getSteps();
+        for(Step step : steps){
+            List<Mail> mails = step.getMails();
+            mailRepo.saveAll(mails);
+        }
+        stepRepository.saveAll(steps);
         campaignRepository.saveAndFlush(newCampaign);
-        //stepService.addNewStep(steps, newCampaign.getId());
     }
 
 

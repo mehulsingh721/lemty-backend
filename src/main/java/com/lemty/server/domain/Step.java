@@ -29,8 +29,7 @@ public class Step{
     private Boolean enabled;
     private String[] days;
 
-    @OneToMany(cascade = {CascadeType.PERSIST, CascadeType.REMOVE}, targetEntity = Mail.class, mappedBy = "step")
-    @NotFound(action = NotFoundAction.IGNORE)
+    @OneToMany(targetEntity = Mail.class)
     private List<Mail> mails = new ArrayList<>();
 
     @JsonIgnore
