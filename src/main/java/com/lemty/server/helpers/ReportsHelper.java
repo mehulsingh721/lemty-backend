@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.lemty.server.domain.ProspectMetadata;
+import com.lemty.server.domain.Step;
 import com.lemty.server.repo.ProspectMetadataRepository;
 import com.lemty.server.service.ProspectService;
 import com.lemty.server.service.StepService;
@@ -30,19 +31,19 @@ public class ReportsHelper {
     }
 
     public List<Map<String, Object>> stepMetrics(String campaignId){
-        List<Map<String, Object>> steps = List.of(stepService.getStepsFromCampaign(campaignId));
+        List<Step> steps = stepService.getStepsFromCampaign(campaignId);
         List<Map<String, Object>> allMetrics = new ArrayList<>();
 
         for(int i=0; i < steps.size(); i++){
-            Map<String, Object> step = steps.get(i);
-            Integer emails = stepService.getMailsFromSteps(campaignId, i).size();
+            Step step = steps.get(i);
+            Integer emails = stepService.getMailsFromSteps(step.getId()).size();
 
             Map<String, Object> metrics = new HashMap<>();
             metrics.put("emails", emails);
-            metrics.put("stepNumber", step.get("stepNumber"));
-            metrics.put("opens", step.get("opens"));
-            metrics.put("clicks", step.get("clicks"));
-            metrics.put("replies", step.get("replies"));
+            metrics.put("stepNumber", step.getStepNumber());
+            metrics.put("opens", step.getOpens());
+            metrics.put("clicks", step.getClicks());
+            metrics.put("replies", step.getReplies());
             allMetrics.add(metrics);
         }
 

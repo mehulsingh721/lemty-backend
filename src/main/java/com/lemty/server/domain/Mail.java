@@ -17,6 +17,9 @@ public class Mail {
     private String subject;
     private String body;
     private String plainBody;
+    private Integer opens = 0;
+    private Integer clicks = 0;
+    private Integer replies = 0;
 
     @JsonIgnore
     @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL, targetEntity = Step.class)
@@ -61,6 +64,30 @@ public class Mail {
 
     public void setPlainBody(String plainBody) {
         this.plainBody = plainBody;
+    }
+
+    public Integer getOpens() {
+        return opens;
+    }
+
+    public void setOpens(Integer opens) {
+        this.opens = opens;
+    }
+
+    public Integer getClicks() {
+        return clicks;
+    }
+
+    public void setClicks(Integer clicks) {
+        this.clicks = clicks;
+    }
+
+    public Integer getReplies() {
+        return replies;
+    }
+
+    public void setReplies(Integer replies) {
+        this.replies = replies;
     }
 
     @Override

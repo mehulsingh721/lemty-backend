@@ -11,6 +11,7 @@ import com.lemty.server.domain.DeliveribilitySettings;
 import com.lemty.server.domain.Emails;
 import com.lemty.server.domain.Prospect;
 import com.lemty.server.domain.ProspectMetadata;
+import com.lemty.server.domain.Step;
 import com.lemty.server.helpers.GmailHelper;
 import com.lemty.server.helpers.PlaceholderHelper;
 import com.lemty.server.jobPayload.MailRequest;
@@ -18,6 +19,7 @@ import com.lemty.server.repo.CampaignRepository;
 import com.lemty.server.repo.EmailsRepository;
 import com.lemty.server.repo.ProspectMetadataRepository;
 import com.lemty.server.repo.ProspectRepository;
+import com.lemty.server.repo.StepRepository;
 import com.lemty.server.service.DeliveribilitySettingsService;
 import com.lemty.server.service.EmailSignatureService;
 import com.lemty.server.service.EmailsService;
@@ -45,10 +47,11 @@ public class MailJob extends QuartzJobBean{
     private final MailJobService mailJobService;
     private final DeliveribilitySettingsService deliveribilitySettingsService;
     private final EmailsService emailsService;
+    private final StepRepository stepRepository;
     @Autowired
     private Environment env;
 
-    public MailJob(GmailHelper gmailHelper, ProspectMetadataRepository prospectMetadataRepository, Scheduler scheduler, StepService stepService, CampaignRepository campaignRepository, ProspectRepository prospectRepository, PlaceholderHelper placeholderHelper, EmailSignatureService emailSignatureService, UnsubscribeService unsubscribeService, EmailsRepository emailsRepository, MailJobService mailJobService, DeliveribilitySettingsService deliveribilitySettingsService, EmailsService emailsService){
+    public MailJob(GmailHelper gmailHelper, ProspectMetadataRepository prospectMetadataRepository, Scheduler scheduler, StepService stepService, CampaignRepository campaignRepository, ProspectRepository prospectRepository, PlaceholderHelper placeholderHelper, EmailSignatureService emailSignatureService, UnsubscribeService unsubscribeService, EmailsRepository emailsRepository, MailJobService mailJobService, DeliveribilitySettingsService deliveribilitySettingsService, EmailsService emailsService, StepRepository stepRepository){
         this.gmailHelper = gmailHelper;
         this.prospectMetadataRepository = prospectMetadataRepository;
         this.scheduler = scheduler;
@@ -59,6 +62,7 @@ public class MailJob extends QuartzJobBean{
         this.mailJobService = mailJobService;
         this.deliveribilitySettingsService = deliveribilitySettingsService;
         this.emailsService = emailsService;
+        this.stepRepository = stepRepository;
     }
 
     @Override
@@ -67,26 +71,24 @@ public class MailJob extends QuartzJobBean{
 
         String prospectId = jobDataMap.getString("prospectId");
         String campaignId = jobDataMap.getString("campaignId");
-        Integer stepIndex = (Integer) jobDataMap.get("stepIndex");
+        Integer stepNumber = (Integer) jobDataMap.get("stepNumber");
         Integer prospectIndex = (Integer) jobDataMap.get("prospectIndex");
         String userId = jobDataMap.getString("userId");
-        Integer nextStepIndex = (Integer) jobDataMap.get("nextStepIndex");
-        Integer afterNextStepIndex = (Integer) jobDataMap.get("afterNextStepIndex");
+        Integer nextStepNumber = (Integer) jobDataMap.get("nextStepNumber");
+        Integer afterNextStepNumber = (Integer) jobDataMap.get("afterNextStepNumber");
         String emailsId = jobDataMap.getString("emailsId");
         String nextProspectId = jobDataMap.getString("nextProspectId");
 
-        sendMail(context, prospectId, campaignId, stepIndex, userId, nextStepIndex, afterNextStepIndex, emailsId, nextProspectId);
+        sendMail(context, prospectId, campaignId, stepNumber, userId, nextStepNumber, afterNextStepNumber, emailsId, nextProspectId);
     }
-    private void sendMail(JobExecutionContext context, String prospectId, String campaignId, Integer stepIndex, String userId, Integer nextStepIndex, Integer afterNextStepIndex, String emailsId, String nextProspectId) {
+    private void sendMail(JobExecutionContext context, String prospectId, String campaignId, Integer stepNumber, String userId, Integer nextStepNumber, Integer afterNextStepNumber, String emailsId, String nextProspectId) {
         //Get data from app
         Campaign campaign = campaignRepository.findById(campaignId).get();
-        List<Map<String, Object>> steps = List.of(stepService.getStepsFromCampaign(campaignId));
         ProspectMetadata metadata = prospectMetadataRepository.findByProspectIdAndCampaignId(prospectId, campaignId);
         Prospect prospect = prospectRepository.findById(prospectId).get();
-        Map<String, Object> step = steps.get(stepIndex);
+        Step step = stepRepository.findByCampaignIdAndStepNumber(campaignId, stepNumber);
         Emails email = emailsRepository.findById(emailsId).get();
 
-        Integer stepNumber = (Integer) step.get("stepNumber").getClass().cast(step.get("stepNumber"));
         MailRequest mailRequest = new MailRequest(email.getFromEmail(), email.getSubject(), email.getToEmail(), email.getBody());
         String threadId;
         if(stepNumber == 1){
@@ -116,15 +118,15 @@ public class MailJob extends QuartzJobBean{
         List<String> prospectIds = new ArrayList<>();
         prospectIds.add(prospectId);
 
-        if(nextStepIndex != 0){
-            Map<String, Object> nextStep = steps.get(nextStepIndex);
-            Integer dayGap = (Integer) nextStep.get("dayGap").getClass().cast(nextStep.get("dayGap"));
-            Integer hourGap = (Integer) nextStep.get("hourGap").getClass().cast(nextStep.get("hourGap"));
-            Integer minuteGap = (Integer) nextStep.get("minuteGap").getClass().cast(nextStep.get("minuteGap"));
+        if(nextStepNumber != 0){
+            Step nextStep = stepRepository.findByCampaignIdAndStepNumber(campaignId, nextStepNumber);
+            Integer dayGap = nextStep.getDayGap();
+            Integer hourGap = nextStep.getHourGap();
+            Integer minuteGap = nextStep.getMinuteGap();
             ZoneId zoneId = ZoneId.of(campaign.getTimezone());
             ZonedDateTime startDate2 = ZonedDateTime.now().withZoneSameInstant(zoneId).plusDays(dayGap).plusHours(hourGap).plusMinutes(minuteGap);
 
-            mailJobService.runStep(prospectIds, campaignId, nextStepIndex, afterNextStepIndex, stepNumber, userId, startDate2);
+            mailJobService.runStep(prospectIds, campaignId, nextStepNumber, afterNextStepNumber, userId, startDate2);
         }
 
         Emails nextEmail = emailsRepository.findByCampaignIdAndProspectId(campaignId, nextProspectId);
@@ -134,14 +136,16 @@ public class MailJob extends QuartzJobBean{
             JobKey jobKey = new JobKey(nextEmail.getId() + "-" + campaignId, campaignId);
             logger.info(String.valueOf(jobKey));
 
-            String window = String.valueOf(step.get("startHour")) + "-" + String.valueOf(step.get("endHour"));
-            Object days = step.get("days");
-            ArrayList list = (ArrayList) days.getClass().cast(days);
+            String window = String.valueOf(step.getStartHour()) + "-" + String.valueOf(step.getEndHour());
+
+            String[] days = step.getDays();
+            List<String> list = new ArrayList<String>(Arrays.asList(days));
             StringJoiner joiner = new StringJoiner(",");
             for(int l = 0; l < list.size(); l++){
-               joiner.add(list.get(l).toString());
+                joiner.add(list.get(l).toString());
             }
             String daysString = joiner.toString();
+
             DeliveribilitySettings deliveribilitySettings = deliveribilitySettingsService.getDeliveribilitySettings(userId);
             int minSeconds = deliveribilitySettings.getMinInterval();
             int maxSeconds = deliveribilitySettings.getMaxInterval();

@@ -23,7 +23,7 @@ public class MailService {
     }
 
     //List all Mails for steps
-    public Mail getFromStep(String stepId){
+    public List<Mail> getFromStep(String stepId){
         // Step step = stepRepository.findById(stepId).get();
         return mailRepo.findByStepId(stepId);
     }

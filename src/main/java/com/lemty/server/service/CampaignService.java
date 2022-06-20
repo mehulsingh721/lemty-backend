@@ -123,20 +123,19 @@ public class CampaignService {
         Campaign existingCampaign = campaignRepository.findById(campaignId).get();
         existingCampaign.setSteps(campaign.getSteps());
         campaignRepository.save(existingCampaign);
-        List<Map<String, Object>> steps = List.of(stepService.getStepsFromCampaign(campaignId));
+        List<Step> steps = stepService.getStepsFromCampaign(campaignId);
         logger.info(String.valueOf(steps));
         for(int i=0; i < steps.size(); i++){
-            Map<String, Object> step = steps.get(i);
+            Step step = steps.get(i);
             List<Emails> emails = emailsRepository.findByCampaignIdAndStep(campaignId, i);
-            logger.info(String.valueOf(emails));
-            List<Map<String, Object>> mails = stepService.getMailsFromSteps(campaignId, i);
+            List<Mail> mails = stepService.getMailsFromSteps(step.getId());
             List<Emails> updatedEmails = new ArrayList<>();
             for(Emails email : emails){
                 logger.info(String.valueOf(email));
                 Prospect prospect = email.getProspect();
-                String from = step.get("whichEmail").toString();
-                String subject = (String) mails.get(email.getMail()).get("subject").getClass().cast(mails.get(i % mails.size()).get("subject"));
-                String body = (String) mails.get(email.getMail()).get("body").getClass().cast(mails.get(i % mails.size()).get("body"));
+                String from = step.getWhichEmail();
+                String subject =  mails.get(email.getMail()).getSubject();
+                String body = mails.get(email.getMail()).getBody();
                 subject = placeholderHelper.fieldsReplacer(subject, prospect);
                 body = placeholderHelper.fieldsReplacer(body, prospect);
                 body = placeholderHelper.bodyLinkReplacer(body, email.getId());

@@ -10,5 +10,5 @@ package com.lemty.server.repo;
 
 @Repository
 public interface MailRepo extends JpaRepository<Mail, String> {
-    Mail findByStepId(String stepId);
+    List<Mail> findByStepId(String stepId);
 }

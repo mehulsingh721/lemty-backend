@@ -364,7 +364,7 @@ public class ProspectService {
                 for(int j=0; j < campaigns.size(); j++){
                     Campaign campaign = campaigns.get(j);
                     campaign.setProspectCount(totalNumberofProspectsCampaign(campaign.getId()));
-                    List<Map<String, Object>> steps = List.of(stepService.getStepsFromCampaign(campaign.getId()));
+                    List<Step> steps = stepService.getStepsFromCampaign(campaign.getId());
                     campaignRepository.save(campaigns.get(j));
                 }
                 prospect.setCampaigns(null);

@@ -1,5 +1,7 @@
 package com.lemty.server.controller;
 
+import java.util.List;
+
 import com.lemty.server.domain.Mail;
 import com.lemty.server.service.MailService;
 
@@ -17,7 +19,7 @@ public class MailController {
     }
 
     @GetMapping(path = "/{stepId}")
-    public Mail getFromStep(@PathVariable("stepId") String stepId){
+    public List<Mail> getFromStep(@PathVariable("stepId") String stepId){
         return mailService.getFromStep(stepId);
     }
 

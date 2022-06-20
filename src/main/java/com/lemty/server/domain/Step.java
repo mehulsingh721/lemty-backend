@@ -24,9 +24,13 @@ public class Step{
     private Integer hourGap;
     private Integer minute;
     private Integer minuteGap;
-    private String deliveryWindow;
+    private Integer startHour;
+    private Integer endHour;
     private String whichEmail;
     private Boolean enabled;
+    private Integer opens = 0;
+    private Integer clicks = 0;
+    private Integer replies = 0;
     private String[] days;
 
     @OneToMany(targetEntity = Mail.class)
@@ -118,12 +122,20 @@ public class Step{
         this.minuteGap = minuteGap;
     }
 
-    public String getDeliveryWindow() {
-        return deliveryWindow;
+    public Integer getStartHour(){
+        return startHour;
     }
 
-    public void setDeliveryWindow(String deliveryWindow) {
-        this.deliveryWindow = deliveryWindow;
+    public void setStartHour(Integer startHour){
+        this.startHour = startHour;
+    }
+
+    public Integer getEndHour(){
+        return endHour;
+    }
+
+    public void setEndHour(Integer endHour){
+        this.endHour = endHour;
     }
 
     public String getWhichEmail() {
@@ -150,6 +162,30 @@ public class Step{
         this.enabled = enabled;
     }
 
+    public Integer getOpens() {
+        return opens;
+    }
+
+    public void setOpens(Integer opens) {
+        this.opens = opens;
+    }
+
+    public Integer getClicks() {
+        return clicks;
+    }
+
+    public void setClicks(Integer clicks) {
+        this.clicks = clicks;
+    }
+
+    public Integer getReplies() {
+        return replies;
+    }
+
+    public void setReplies(Integer replies) {
+        this.replies = replies;
+    }
+
     @Override
     public String toString() {
         return "Step{" +
@@ -161,7 +197,6 @@ public class Step{
                 ", hourGap=" + hourGap +
                 ", minute=" + minute +
                 ", minuteGap=" + minuteGap +
-                ", deliveryWindow='" + deliveryWindow + '\'' +
                 ", whichEmail='" + whichEmail + '\'' +
                 ", enabled=" + enabled +
                 ", days=" + Arrays.toString(days) +

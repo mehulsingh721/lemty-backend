@@ -39,34 +39,14 @@ public class StepService {
 
     @Transactional
     //List step by campaign
-    public Map[] getStepsFromCampaign(String campaignId){
+    public List<Step> getStepsFromCampaign(String campaignId){
         Campaign campaign = campaignRepository.findById(campaignId).get();
         return campaign.getSteps();
     }
 
     //List step by campaign
-    public List<Map<String, Object>> getMailsFromSteps(String campaignId, int index){
-
-        List<Map<String, Object>> steps = List.of(getStepsFromCampaign(campaignId));
-
-        List<Map<String, Object>> hashed = new ArrayList<>();
-
-        List<Map<String, Object>> mails = new ArrayList<>();
-        Map<String, Object> map = new HashMap<>();
-
-        ObjectMapper objectMapper = new ObjectMapper();
-
-        for(int i=0; i < steps.size(); i++){
-            Map<String, Object> stepsMap = new HashMap<>(steps.get(i));
-            hashed.add(stepsMap);
-        }
-
-        Object m = hashed.get(index).get("mails");
-        ArrayList list = (ArrayList) m.getClass().cast(m);
-        for(int j=0; j < list.size(); j++){
-            Map<String, Object> ap = objectMapper.convertValue(list.get(j), Map.class);
-            mails.add(ap);
-        }
+    public List<Mail> getMailsFromSteps(String stepId){
+        List<Mail> mails = mailService.getFromStep(stepId);
         return mails;
     }
 
@@ -86,28 +66,28 @@ public class StepService {
         // stepRepository.saveAll(step);
     }
 
-    //Update Step
-    public void updateStep(Step newStep, String stepId){
-        stepRepository.findById(stepId)
-                .map(step -> {
-                    step.setId(stepId);
-                    step.setStepNumber(newStep.getStepNumber());
-                    step.setDay(newStep.getDay());
-                    step.setDayGap(newStep.getDayGap());
-                    step.setHour(newStep.getHour());
-                    step.setHourGap(newStep.getHourGap());
-                    step.setMinute(newStep.getMinute());
-                    step.setMinuteGap(newStep.getMinuteGap());
-                    step.setDeliveryWindow(newStep.getDeliveryWindow());
-                    // step.setDays(newStep.getDays());
-                    step.setWhichEmail(newStep.getWhichEmail());
+//    //Update Step
+//    public void updateStep(Step newStep, String stepId){
+//        stepRepository.findById(stepId)
+//                .map(step -> {
+//                    step.setId(stepId);
+//                    step.setStepNumber(newStep.getStepNumber());
+//                    step.setDay(newStep.getDay());
+//                    step.setDayGap(newStep.getDayGap());
+//                    step.setHour(newStep.getHour());
+//                    step.setHourGap(newStep.getHourGap());
+//                    step.setMinute(newStep.getMinute());
+//                    step.setMinuteGap(newStep.getMinuteGap());
+//                    step.setDeliveryWindow(newStep.getDeliveryWindow());
+//                    // step.setDays(newStep.getDays());
+//                    step.setWhichEmail(newStep.getWhichEmail());
 
-                    return stepRepository.save(step);
-                })
-                .orElseGet(() -> {
-                    return null;
-                });
-    }
+//                    return stepRepository.save(step);
+//                })
+//                .orElseGet(() -> {
+//                    return null;
+//                });
+//    }
     //Delete Step
     public void deleteStep(String stepId){
         stepRepository.deleteById(stepId);

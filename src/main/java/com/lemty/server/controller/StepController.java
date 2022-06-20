@@ -1,5 +1,6 @@
 package com.lemty.server.controller;
 
+import com.lemty.server.domain.Mail;
 import com.lemty.server.domain.Step;
 import com.lemty.server.service.StepService;
 import org.springframework.http.HttpStatus;
@@ -25,13 +26,13 @@ public class StepController{
     }
 
     @GetMapping(path = "/{campaignId}")
-    public Map[] getFromCampaign(@PathVariable("campaignId") String campaignId){
+    public List<Step> getFromCampaign(@PathVariable("campaignId") String campaignId){
         return stepService.getStepsFromCampaign(campaignId);
     }
 
     @GetMapping(path = "mails/{campaignId}/{index}")
-    public List<Map<String, Object>> getMailsFromSteps(@PathVariable("campaignId") String campaignId, @PathVariable("index") int index){
-        return stepService.getMailsFromSteps(campaignId, index);
+    public List<Mail> getMailsFromSteps(@PathVariable("stepId") String stepId){
+        return stepService.getMailsFromSteps(stepId);
     }
 
 
@@ -41,11 +42,11 @@ public class StepController{
     //     return new ResponseEntity<>(newStep, HttpStatus.CREATED);
     // }
 
-    @PutMapping(path = "/{stepId}")
-    public ResponseEntity<Step> replaceStep(@RequestBody Step newStep, @PathVariable("stepId") String stepId){
-        stepService.updateStep(newStep, stepId);
-        return new ResponseEntity<>(newStep, HttpStatus.CREATED);
-    }
+    // @PutMapping(path = "/{stepId}")
+    // public ResponseEntity<Step> replaceStep(@RequestBody Step newStep, @PathVariable("stepId") String stepId){
+    //     stepService.updateStep(newStep, stepId);
+    //     return new ResponseEntity<>(newStep, HttpStatus.CREATED);
+    // }
 
     @DeleteMapping(path = "/{stepId}")
     public void deleteProspectList(@PathVariable("stepId") String stepId){

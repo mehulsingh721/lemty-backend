@@ -2,9 +2,11 @@ package com.lemty.server.service;
 
 import com.lemty.server.domain.Campaign;
 import com.lemty.server.domain.Mail;
+import com.lemty.server.domain.Step;
 import com.lemty.server.helpers.StartDateHelper;
 import com.lemty.server.jobPayload.CampaignPayload;
 import com.lemty.server.repo.CampaignRepository;
+import com.lemty.server.repo.StepRepository;
 
 import org.quartz.*;
 import org.slf4j.Logger;
@@ -24,8 +26,9 @@ public class StepJobService {
     private final DeliveribilitySettingsService deliveribilitySettingsService;
     private final StartDateHelper startDateHelper;
     private final MailJobService mailJobService;
+    private final StepRepository stepRepository;
 
-    public StepJobService(Scheduler scheduler, StepService stepService, ProspectService prospectService, CampaignRepository campaignRepository, DeliveribilitySettingsService deliveribilitySettingsService, StartDateHelper startDateHelper, MailJobService mailJobService) {
+    public StepJobService(Scheduler scheduler, StepService stepService, ProspectService prospectService, CampaignRepository campaignRepository, DeliveribilitySettingsService deliveribilitySettingsService, StartDateHelper startDateHelper, MailJobService mailJobService, StepRepository stepRepository) {
         this.scheduler = scheduler;
         this.stepService = stepService;
         this.prospectService = prospectService;
@@ -33,6 +36,7 @@ public class StepJobService {
         this.deliveribilitySettingsService = deliveribilitySettingsService;
         this.startDateHelper = startDateHelper;
         this.mailJobService = mailJobService;
+        this.stepRepository = stepRepository;
     }
 
     public void createCampaignJob(CampaignPayload payload, String userId) {
@@ -42,20 +46,20 @@ public class StepJobService {
         campaignRepository.save(campaign);
         prospectService.addMultipleProspectsToCampaign(payload.getSelectedProspects(), campaignId);
 
-        List<Map<String, Object>> steps = List.of(stepService.getStepsFromCampaign(campaignId));
+        Step initialStep = stepRepository.findByCampaignIdAndStepNumber(campaignId, 1);
+        Integer stepNumber = initialStep.getStepNumber();
 
-        Map<String, Object> initialStep = steps.get(0);
-        Integer stepNumber = (Integer) initialStep.get("stepNumber").getClass().cast(initialStep.get("stepNumber"));
-        Integer stepIndex = 0;
-        Integer nextStepIndex;
-        if((stepIndex + 1) == steps.size()){
-            nextStepIndex = 0;
+        Step nextStep = stepRepository.findByCampaignIdAndStepNumber(campaignId, stepNumber + 1);
+        Integer nextStepNumber;
+        if(nextStep != null){
+            nextStepNumber = nextStep.getStepNumber();
         }
         else{
-            nextStepIndex = stepIndex + 1;
+            nextStepNumber = null;
         }
+
         ZonedDateTime startDate = ZonedDateTime.now().withZoneSameLocal(ZoneId.of(campaign.getTimezone()));
-        mailJobService.runStep(payload.getSelectedProspects(), campaignId, stepIndex, nextStepIndex, stepNumber, userId, startDate);
+        mailJobService.runStep(payload.getSelectedProspects(), campaignId, stepNumber, nextStepNumber, userId, startDate);
     }
 
 

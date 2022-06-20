@@ -5,4 +5,5 @@ package com.lemty.server.repo;
 
 @Repository
 public interface StepRepository extends JpaRepository<Step, String>{
+        Step findByCampaignIdAndStepNumber(String campaignId, Integer stepNumber);
 }
