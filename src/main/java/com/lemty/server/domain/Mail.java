@@ -20,6 +20,7 @@ public class Mail {
     private Integer opens = 0;
     private Integer clicks = 0;
     private Integer replies = 0;
+    private Boolean enabled = true;
 
     @JsonIgnore
     @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL, targetEntity = Step.class)
@@ -88,6 +89,14 @@ public class Mail {
 
     public void setReplies(Integer replies) {
         this.replies = replies;
+    }
+
+    public Boolean getEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(Boolean enabled) {
+        this.enabled = enabled;
     }
 
     @Override
