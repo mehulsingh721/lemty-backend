@@ -66,6 +66,7 @@ public class MailJobService {
         //Scheduling parameters
         DeliveribilitySettings deliveribilitySettings = deliveribilitySettingsService.getDeliveribilitySettings(userId);
         String window = String.valueOf(step.getStartHour()) + "-" + String.valueOf(step.getEndHour());
+        logger.info(window);
 
         String[] days = step.getDays();
         List<String> list = new ArrayList<String>(Arrays.asList(days));
@@ -82,9 +83,10 @@ public class MailJobService {
             afterNextStepNumber = afterNextStep.getStepNumber();
         }
         else{
-            afterNextStepNumber = null;
+            afterNextStepNumber = 0;
         }
 
+        logger.info(String.valueOf(afterNextStepNumber));
         List<Emails> initiEmails = new ArrayList<>();
 
         ZonedDateTime currentZonedDateTime = ZonedDateTime.now();
@@ -92,16 +94,23 @@ public class MailJobService {
             //Mail Data
             Prospect prospect = prospectRepository.findById(prospectIds.get(i)).get();
             ProspectMetadata prospectMetadata = prospectMetadataRepository.findByProspectIdAndCampaignId(prospect.getId(), campaignId);
+            logger.info(String.valueOf(stepNumber));
             if(prospectMetadata.getLastCompletedStep() == stepNumber){
-                return;
+                logger.info(String.valueOf(prospectMetadata.getId()));
             }
             else{
                 if(!prospect.getUnsubscribed()){
+                    logger.info(String.valueOf(i));
                     String from = step.getWhichEmail();
                     String to = prospect.getProspectEmail();
+                    logger.info(from);
+                    logger.info(String.valueOf(mails.size()));
+                    logger.info(String.valueOf(i % mails.size()));
                     String subject = mails.get(i % mails.size()).getSubject();
+                    logger.info(subject);
                     String body = mails.get(i % mails.size()).getBody();
                     subject = placeholderHelper.fieldsReplacer(subject, prospect);
+                    logger.info(subject);
                     body = placeholderHelper.fieldsReplacer(body, prospect);
                     Emails email = new Emails();
                     body = placeholderHelper.bodyLinkReplacer(body, email.getId());
@@ -112,6 +121,7 @@ public class MailJobService {
                     if(unsubscribe != null){
                         body = placeholderHelper.unsubLinkReplacer(body, prospect.getId(), unsubscribe);
                     }
+
                     email.setFromEmail(from);
                     email.setToEmail(to);
                     email.setSubject(subject);
@@ -120,6 +130,7 @@ public class MailJobService {
                     email.setStep(stepNumber);
                     email.setProspect(prospect);
                     email.setMail(i % mails.size());
+                    logger.info(email.getId());
 
                     Engagement engagement = new Engagement();
                     engagement.setOpens(engagement.getOpens() + 1);
@@ -130,6 +141,7 @@ public class MailJobService {
                     emailsRepository.save(email);
 
                     String openLink =  env.getProperty("track.url").toString() + "/getAttachment/" + email.getId();
+                    logger.info(openLink);
                     body = body + "<img src='" + openLink + "' alt=''>";
 
                     email.setBody(body);

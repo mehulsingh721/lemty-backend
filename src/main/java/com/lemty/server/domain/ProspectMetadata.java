@@ -15,7 +15,7 @@ public class ProspectMetadata implements Serializable {
     private String id = UUID.randomUUID().toString().replace("-", "").substring(0, 8);
     private String campaignId;
     // private String prospectId;
-    private Integer lastCompletedStep;
+    private Integer lastCompletedStep = 0;
     private String threadId;
     private String msgId;
     private Integer opens = 0;

@@ -47,20 +47,20 @@ public class StepJobService {
         prospectService.addMultipleProspectsToCampaign(payload.getSelectedProspects(), campaignId);
 
         Step initialStep = stepRepository.findByCampaignIdAndStepNumber(campaignId, 1);
-        logger.info(String.valueOf(initialStep));
-        // Integer stepNumber = initialStep.getStepNumber();
+        Integer stepNumber = initialStep.getStepNumber();
+        logger.info(String.valueOf(stepNumber));
 
-        // Step nextStep = stepRepository.findByCampaignIdAndStepNumber(campaignId, stepNumber + 1);
-        // Integer nextStepNumber;
-        // if(nextStep != null){
-        //     nextStepNumber = nextStep.getStepNumber();
-        // }
-        // else{
-        //     nextStepNumber = null;
-        // }
+        Step nextStep = stepRepository.findByCampaignIdAndStepNumber(campaignId, stepNumber + 1);
+        Integer nextStepNumber;
+        if(nextStep != null){
+            nextStepNumber = nextStep.getStepNumber();
+        }
+        else{
+            nextStepNumber = 0;
+        }
 
-        // ZonedDateTime startDate = ZonedDateTime.now().withZoneSameLocal(ZoneId.of(campaign.getTimezone()));
-        // mailJobService.runStep(payload.getSelectedProspects(), campaignId, stepNumber, nextStepNumber, userId, startDate);
+        ZonedDateTime startDate = ZonedDateTime.now().withZoneSameLocal(ZoneId.of(campaign.getTimezone()));
+        mailJobService.runStep(payload.getSelectedProspects(), campaignId, stepNumber, nextStepNumber, userId, startDate);
     }
 
 

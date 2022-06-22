@@ -90,13 +90,17 @@ public class CampaignService {
         }
         AppUser appUser = userRepo.findById(userId).get();
         newCampaign.setAppUser(appUser);
-        //List<Map<String, Object>> steps = newCampaign.getSteps();
+        // List<Step> steps = newCampaign.getSteps();
         newCampaign.setStatus("Not Started");
         newCampaign.setProspectCount(0);
         List<Step> steps = newCampaign.getSteps();
         for(Step step : steps){
             List<Mail> mails = step.getMails();
+            for(Mail mail : mails){
+                mail.setStep(step);
+            }
             mailRepo.saveAll(mails);
+            step.setCampaign(newCampaign);
         }
         stepRepository.saveAll(steps);
         campaignRepository.saveAndFlush(newCampaign);
